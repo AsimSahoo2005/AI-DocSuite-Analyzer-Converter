@@ -1,5 +1,6 @@
-// Fix: Replaced invalid file content with the correct implementation for file services.
-import * as pdfjs from 'pdfjs-dist/legacy/build/pdf';
+// Corrected imports for Node.js build environment
+import * as pdfjs from 'pdfjs-dist';
+import type { TextItem } from 'pdfjs-dist/types/src/display/api';
 import mammoth from 'mammoth';
 import { jsPDF } from 'jspdf';
 import { marked } from 'marked';
@@ -11,7 +12,7 @@ const DEBUG = false;
 
 // Setup for pdfjs worker
 // @ts-ignore
-pdfjs.GlobalWorkerOptions.workerSrc = 'https://aistudiocdn.com/pdfjs-dist@5.4.149/legacy/build/pdf.worker.js';
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.mjs`;
 
 /**
  * Extracts text content from a PDF file.
@@ -24,7 +25,8 @@ export const extractTextFromPdf = async (file: File): Promise<string> => {
   for (let i = 1; i <= numPages; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
-    fullText += textContent.items.map(item => ('str' in item ? item.str : '')).join(' ') + '\n';
+    // FIX: Add explicit 'any' type to 'item' to resolve TS7006
+    fullText += textContent.items.map((item: any) => ('str' in item ? item.str : '')).join(' ') + '\n';
   }
   return fullText;
 };
@@ -75,7 +77,6 @@ export const createTextPdf = async (content: string, fileName: string): Promise<
 
   const textLines = doc.splitTextToSize(sanitizedContent, usableWidth);
   let cursorY = margin;
-  // FIX: Property 'scaleFactor' does not exist on type 'Font'. Use getLineHeight() directly.
   const lineHeight = doc.getLineHeight();
 
   for (const line of textLines) {
@@ -117,8 +118,6 @@ export const convertIpynbToHtml = async (file: File): Promise<string> => {
   const content = await file.text();
   const notebook: IpynbFile = JSON.parse(content);
   
-  // FIX: 'highlight' does not exist in type 'MarkedOptions'.
-  // Pass options to marked() directly instead of using deprecated setOptions.
   const markedOptions = {
     highlight: function(code: string, lang: string) {
       const language = hljs.getLanguage(lang) ? lang : 'plaintext';
@@ -130,7 +129,6 @@ export const convertIpynbToHtml = async (file: File): Promise<string> => {
   const bodyContent = notebook.cells.map(cell => {
     const source = Array.isArray(cell.source) ? cell.source.join('') : cell.source;
     if (cell.cell_type === 'markdown') {
-      // @ts-ignore
       return `<div class="cell markdown-cell">${marked(source, markedOptions)}</div>`;
     }
     if (cell.cell_type === 'code') {
@@ -174,8 +172,6 @@ export const convertIpynbToHtml = async (file: File): Promise<string> => {
           blockquote { color: #666; margin: 0; padding-left: 1em; border-left: 0.25em solid #dfe2e5; }
         </style>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-        <script>hljs.highlightAll();</script>
       </head>
       <body>
         ${bodyContent}
@@ -238,7 +234,6 @@ export const convertIpynbToPdf = async (file: File, newFileName: string): Promis
 
         await pdf.html(contentToRender, {
             margin: [40, 40, 40, 40],
-            // FIX: Type '"body"' is not assignable. Use 'slice' instead.
             autoPaging: 'slice',
             html2canvas: { scale: 0.7, useCORS: true, logging: DEBUG },
         });
@@ -314,7 +309,6 @@ export const convertIpynbToDocx = async (file: File, newFileName: string): Promi
         if (DEBUG) console.log('[DOCX Export] Processing code cell');
         source.split('\n').forEach(line => {
              docChildren.push(new docx.Paragraph({
-                // FIX: The 'size' property should be a direct property of TextRun, not nested in 'font'.
                 children: [new docx.TextRun({ text: line, font: { name: 'Courier New' }, size: 20 })],
                 shading: { type: docx.ShadingType.CLEAR, fill: "F0F0F0" },
              }));
@@ -331,7 +325,6 @@ export const convertIpynbToDocx = async (file: File, newFileName: string): Promi
                 }
                 if (outputText) {
                      outputText.split('\n').forEach(line => {
-                         // FIX: The 'size' property should be a direct property of TextRun, not nested in 'font'.
                          docChildren.push(new docx.Paragraph({ children: [new docx.TextRun({ text: line, font: { name: 'Courier New' }, size: 18 })] }));
                      });
                 }
