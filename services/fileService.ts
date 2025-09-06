@@ -25,8 +25,11 @@ export const extractTextFromPdf = async (file: File): Promise<string> => {
   for (let i = 1; i <= numPages; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
-    // FIX: Add explicit 'any' type to 'item' to resolve TS7006
-    fullText += textContent.items.map((item: any) => ('str' in item ? item.str : '')).join(' ') + '\n';
+    const pageText = textContent.items
+      .filter((item): item is TextItem => 'str' in item)
+      .map((item: TextItem) => item.str)
+      .join(' ');
+    fullText += pageText + '\n';
   }
   return fullText;
 };
