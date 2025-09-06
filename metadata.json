@@ -1,0 +1,5 @@
+{
+  "name": "AI DocSuite: Analyzer & Converter",
+  "description": "An intelligent web application that combines AI-powered document analysis (summarization, strategy creation, quiz generation) for PDFs with a versatile file converter for PDF, DOCX, and Jupyter Notebook files.",
+  "requestFramePermissions": []
+}
