@@ -68,19 +68,26 @@ export const analyzeDocument = async (content: string, type: AnalysisType): Prom
       config: config,
     });
     
-    const textResponse = response.text.trim();
+    const textResponse = response.text;
+
+    if (!textResponse) {
+      console.error("Gemini API returned an empty or undefined text response.", response);
+      throw new Error("Failed to get a valid text response from the AI.");
+    }
+    
+    const trimmedText = textResponse.trim();
     
     if (type === AnalysisType.Quiz) {
         try {
             // The response should be a JSON string, parse it.
-            return JSON.parse(textResponse) as Quiz;
+            return JSON.parse(trimmedText) as Quiz;
         } catch (e) {
-            console.error("Failed to parse quiz JSON:", textResponse);
+            console.error("Failed to parse quiz JSON:", trimmedText);
             throw new Error("The AI returned an invalid format for the quiz. Please try again.");
         }
     }
 
-    return textResponse;
+    return trimmedText;
   } catch (error) {
     console.error("Error calling Gemini API:", error);
     throw new Error("Failed to get a response from the AI. The content might be too complex or there could be an issue with the service.");
