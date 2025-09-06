@@ -18,7 +18,6 @@ export const CONVERSION_MAP: ConversionMap = {
   ],
   'ipynb': [ // Special key for .ipynb extension
     { label: 'to HTML', targetMime: 'text/html' },
-    { label: 'to PDF', targetMime: 'application/pdf' },
     { label: 'to DOCX', targetMime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
   ],
 };

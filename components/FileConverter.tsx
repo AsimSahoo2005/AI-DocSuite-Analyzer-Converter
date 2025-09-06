@@ -52,8 +52,6 @@ const FileConverter: React.FC = () => {
       } else if (originalExtension === 'ipynb' && targetMime === 'text/html') {
           const html = await fileService.convertIpynbToHtml(file);
           fileService.createDownload(html, newFileName, 'text/html');
-      } else if (originalExtension === 'ipynb' && targetMime === 'application/pdf') {
-          await fileService.convertIpynbToPdf(file, newFileName);
       } else if (originalExtension === 'ipynb' && targetMime.includes('wordprocessingml')) {
           await fileService.convertIpynbToDocx(file, newFileName);
       } else {
